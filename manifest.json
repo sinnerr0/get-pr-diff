@@ -24,7 +24,7 @@
   "content_scripts": [
     {
       "matches": ["https://github.com/*/pull/*"],
-      "js": ["content/content.js"],
+      "js": ["scripts/prompt-storage.js", "content/content.js"],
       "css": ["content/content.css"]
     }
   ],

@@ -1,25 +1,30 @@
-let systemPrompt = '';
+let systemPrompt = DEFAULT_SYSTEM_PROMPT;
 
-chrome.storage.sync.get(['systemPrompt'], (result) => {
-  systemPrompt = result.systemPrompt || 'Please analyze this pull request diff:';
+readSystemPrompt().then(stored => {
+  systemPrompt = stored;
 });
 
-chrome.storage.onChanged.addListener((changes) => {
-  if (changes.systemPrompt) {
-    systemPrompt = changes.systemPrompt.newValue || 'Please analyze this pull request diff:';
-  }
+onSystemPromptChanged(updated => {
+  systemPrompt = updated;
 });
+
+function getReviewButton() {
+  const reviewButtonOld = document.querySelector('.js-reviews-toggle');
+  const reviewButtonNew = document.querySelector('[class*="ReviewMenuButton"]');
+  const prCodeButton = document.querySelector('[class*="PullRequestCodeButton"]');
+  return reviewButtonOld || reviewButtonNew || prCodeButton;
+}
 
 function addCopyDiffButton() {
   if (document.querySelector('#pr-diff-copy-button')) return;
 
-  // Look for the Review changes button
-  const reviewButton = document.querySelector('.js-reviews-toggle');
+  // Look for the Review changes or PR Code button
+  const reviewButton = getReviewButton();
   if (!reviewButton) return;
 
   const button = document.createElement('button');
   button.id = 'pr-diff-copy-button';
-  button.className = 'Button--secondary Button--small Button mr-2';
+  button.className = 'Button--secondary Button';
   button.type = 'button';
   button.setAttribute('data-view-component', 'true');
   button.innerHTML = `
@@ -39,7 +44,7 @@ function addCopyDiffButton() {
     
     try {
       const prInfo = getPRInfo();
-      const diff = await fetchPRDiff();
+      const diff = await fetchPRDiff(prInfo);
       const markdown = formatDiffAsMarkdown(prInfo, diff);
       
       await navigator.clipboard.writeText(markdown);
@@ -82,8 +87,7 @@ function addCopyDiffButton() {
 }
 
 function getPRInfo() {
-  const titleElement = document.querySelector('.js-issue-title');
-  const title = titleElement ? titleElement.textContent.trim() : 'Unknown PR';
+  const title = getPRTitle();
   
   const [owner, repo] = window.location.pathname.split('/').slice(1, 3);
   const prNumber = window.location.pathname.split('/')[4];
@@ -91,9 +95,19 @@ function getPRInfo() {
   return { title, owner, repo, prNumber };
 }
 
-async function fetchPRDiff() {
-  const diffUrl = window.location.href.replace(/\/files.*$/, '') + '.diff';
-  
+function getPRTitle() {
+  const titleElementOld = document.querySelector('.js-issue-title');
+  if (titleElementOld) return titleElementOld.textContent.trim();
+  const titleElementNew = document.querySelector('[class*="PageHeader-Title"]');
+  if (titleElementNew) return titleElementNew.textContent.trim();
+  return 'Unknown PR';
+}
+
+async function fetchPRDiff({ owner, repo, prNumber }) {
+  const url = new URL(window.location.href);
+  url.pathname = `/${owner}/${repo}/pull/${prNumber}.diff`;
+  const diffUrl = `${url.origin}${url.pathname}`;
+
   // Use background script to fetch the diff (avoids CORS)
   return new Promise((resolve, reject) => {
     chrome.runtime.sendMessage(
@@ -129,7 +143,7 @@ ${diff}
 }
 
 const observer = new MutationObserver(() => {
-  if (window.location.pathname.includes('/pull/') && document.querySelector('.js-reviews-toggle')) {
+  if (window.location.pathname.includes('/pull/') && getReviewButton()) {
     addCopyDiffButton();
   }
 });
