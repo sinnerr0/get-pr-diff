@@ -26,6 +26,11 @@
       "matches": ["https://github.com/*/pull/*"],
       "js": ["scripts/prompt-storage.js", "content/content.js"],
       "css": ["content/content.css"]
+    },
+    {
+      "matches": ["https://github.com/*"],
+      "js": ["content/notifications-filter.js"],
+      "css": ["content/notifications-filter.css"]
     }
   ],
   "background": {

@@ -1,0 +1,7 @@
+.notifications-list-item.notification-status-filter-hidden {
+  display: none !important;
+}
+
+#notification-status-filter .BtnGroup-item[aria-pressed="true"] {
+  font-weight: 600;
+}
