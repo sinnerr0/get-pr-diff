@@ -12,6 +12,7 @@ A Chrome extension that adds a "Copy Diff" button to GitHub Pull Requests, allow
 - **Customizable Prompts**: Configure your own system prompt to guide AI reviews (e.g., focus on security, performance, or specific coding standards)
 - **Smart Integration**: Automatically fetches PR metadata (title, repository, PR number) along with the diff
 - **No API Keys Required**: Works directly with GitHub's interface - no authentication needed
+- **Notification Status Filter**: Adds All / Open / Draft / Merged / Closed / CI failed buttons to [github.com/notifications](https://github.com/notifications), plus "Select shown" to bulk-mark only the filtered notifications as Done ([community#15591](https://github.com/orgs/community/discussions/15591))
 
 ## 📦 Installation
 
